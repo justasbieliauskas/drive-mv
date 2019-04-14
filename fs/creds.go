@@ -2,10 +2,10 @@ package fs
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 
+	"github.com/justasbieliauskas/drivemv/errors"
 	"golang.org/x/oauth2"
 )
 
@@ -45,7 +45,7 @@ func (creds credentials) json() ([]byte, error) {
 		},
 	})
 	if err != nil {
-		return nil, fmt.Errorf("Unable to marshal credentials json: %v", err)
+		return nil, errors.Nest("Unable to marshal credentials json", err)
 	}
 	return bytes, nil
 }
@@ -56,7 +56,7 @@ func (creds credentials) token() (*oauth2.Token, error) {
 		creds["DRIVE_TOKEN_EXPIRY"],
 	)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse expiry date: %v", err)
+		return nil, errors.Nest("Unable to parse expiry date", err)
 	}
 	token := &oauth2.Token{
 		AccessToken:  creds["DRIVE_ACCESS_TOKEN"],

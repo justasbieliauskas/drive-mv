@@ -1,11 +1,12 @@
 package command
 
 import (
-	"errors"
+	go_errors "errors"
 	"fmt"
 	"os"
 	"strings"
 
+	"github.com/justasbieliauskas/drivemv/errors"
 	"github.com/justasbieliauskas/drivemv/fs"
 )
 
@@ -33,16 +34,16 @@ func (command *Command) Run(args []string) error {
 		"DRIVE_TOKEN_EXPIRY",
 	)
 	if !contains {
-		return errors.New("Environment variables missing")
+		return go_errors.New("Environment variables missing")
 	}
 	file, err := os.Open(args[0])
 	if err != nil {
-		return fmt.Errorf("Error while opening file \"%s\": %v", args[0], err)
+		return errors.Nest(fmt.Sprintf("Error while opening file \"%s\"", args[0]), err)
 	}
 	defer file.Close()
 	root, err := fs.NewRoot(command.Env)
 	if err != nil {
-		return fmt.Errorf("Error while obtaining drive root: %v", err)
+		return errors.Nest("Error while obtaining drive root", err)
 	}
 	_, err = root.UploadFile(file, args[0])
 	return err

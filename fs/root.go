@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/justasbieliauskas/drivemv/errors"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/drive/v3"
 )
@@ -26,20 +27,20 @@ func NewRoot(env []string) (*Root, error) {
 	creds := credsFromEnv(env)
 	json, err := creds.json()
 	if err != nil {
-		return nil, fmt.Errorf("Unable to retrieve config json from creds: %v", err)
+		return nil, errors.Nest("Unable to retrieve config json from creds", err)
 	}
 	config, err := google.ConfigFromJSON(json, drive.DriveScope)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to create config from json credentials: %v", err)
+		return nil, errors.Nest("Unable to create config from json credentials", err)
 	}
 	token, err := creds.token()
 	if err != nil {
-		return nil, fmt.Errorf("Unable to create oauth token from credentials: %v", err)
+		return nil, errors.Nest("Unable to create oauth token from credentials", err)
 	}
 	client := config.Client(context.Background(), token)
 	service, err := drive.New(client)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to new-up a Drive service: %v", err)
+		return nil, errors.Nest("Unable to new-up a Drive service", err)
 	}
 	return &Root{service: service.Files}, nil
 }
@@ -76,12 +77,12 @@ func (root *Root) GetFileByName(name string) (*File, error) {
 func (file *File) Content() (string, error) {
 	response, err := file.service.Get(file.Id).Download()
 	if err != nil {
-		return "", fmt.Errorf("Unable to download file: %v", err)
+		return "", errors.Nest("Unable to download file", err)
 	}
 	defer response.Body.Close()
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return "", fmt.Errorf("Error while reading http response body: %v", err)
+		return "", errors.Nest("Error while reading http response body", err)
 	}
 	return string(body), nil
 }
